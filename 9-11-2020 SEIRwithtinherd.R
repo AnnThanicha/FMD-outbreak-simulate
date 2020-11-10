@@ -79,15 +79,15 @@ plot (S ~ time, data = output, type='b', col = 'blue')
 
 
 ######################################################################
-######### SEIR model with vaccination ################################
+######### link model  ################################
 linkmodel<-function (dat){
   
   for(i in seq(t)){ # loop for each time increment
     
     is.inf <- which(sapply(dat, function(x) x$pop_inf) >0) #infection farm 
-    ID.inf <-sapply(farm[c(is.inf)], function(x) x$ID )
+    ID.inf <-sapply(dat[c(is.inf)], function(x) x$ID ) # infection ID
     is.sus <- which(sapply(dat, function(x) x$pop_sus == x$pop)) #susceptible farm 
-    ID.sus <-sapply(farm[c(is.sus)], function(x) x$ID )
+    ID.sus <-sapply(dat[c(is.sus)], function(x) x$ID ) # susceptible ID
     
     for(k in is.inf){ #loop for each infection individual
       N = dat[[k]]$pop
@@ -100,8 +100,8 @@ linkmodel<-function (dat){
       dat[[k]]$pop_recover = within [i,5]
       } 
     
-    for(j in is.sus){ #loop for each susceptible individual
-      kernel<-sum(kernelmatrixlong$value[kernelmatrixlong$sus %in% c(is.sus[j]) & kernelmatrixlong$inf %in% c(is.inf) ])
+    for(j in ID.sus){ #loop for each susceptible individual
+      kernel<-sum(kernelmatrixlong$value[kernelmatrixlong$sus %in% c(ID.sus[j]) & kernelmatrixlong$inf %in% c(ID.inf) ])
       probinf <-rbinom(n=1, size =1, prob = 1-exp(-kernel))  # calculate pob of infection for each sus ceptible individual
       dat[[j]]$pop <-ifelse(probinf ==1, "exposed",dat[[j]]$status)} # if infection from binomial distribution farm change status
     

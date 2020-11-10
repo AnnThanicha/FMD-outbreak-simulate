@@ -235,10 +235,10 @@ outbreaksim<-function (dat){
     is.inf <- which(sapply(dat, function(x) x$pop_inf) >0) #infection farm 
     ID.inf <-sapply(dat[c(is.inf)], function(x) x$ID )
     is.sus <- which(sapply(dat, function(x) x$pop_sus == x$pop)) #susceptible farm 
-    ID.sus <-sapply(dat[c(is.sus)], function(x) x$ID )
+    #ID.sus <-sapply(dat[c(is.sus)], function(x) x$ID )
     
-    for(j in ID.sus){ #loop for each susceptible individual
-      probinf <-rbinom(n=1, size =1, prob = 1-exp(-sum(kernelmatrixlong$value[kernelmatrixlong$sus %in% c(ID.sus[j]) & kernelmatrixlong$inf %in% c(ID.inf) ])))  # calculate pob of infection for each sus ceptible individual
+    for(j in is.sus){ #loop for each susceptible individual
+      probinf <-rbinom(n=1, size =1, prob = 1-exp(-sum(kernelmatrixlong$value[kernelmatrixlong$sus %in% c(dat[[j]]$ID) & kernelmatrixlong$inf %in% c(ID.inf) ])))  # calculate pob of infection for each sus ceptible individual
       dat[[j]]$status <-ifelse(probinf ==1, "exposed",dat[[j]]$status)} # if infection from binomial distribution farm change status
     
     dat<-lapply(dat, transform, infduration = ifelse(status!="sus", infduration+1, infduration))# advance infectious duration for infectious farm
@@ -263,18 +263,27 @@ outbreaksim<-function (dat){
 }
 
 outbreakresult<-outbreaksim(dat=farm)
+
+
 out = replicate(n = 3, expr = outbreaksim(dat=farm))# replicate MonteCarlo
 
+
+# check sum kernel
 dat=farm
 is.inf <- which(sapply(dat, function(x) x$pop_inf) >0) #infection farm 
 ID.inf <-sapply(dat[c(is.inf)], function(x) x$ID )
 is.sus <- which(sapply(dat, function(x) x$pop_sus == x$pop)) #susceptible farm 
 ID.sus <-sapply(dat[c(is.sus)], function(x) x$ID )
 
-# check sum kernel
-which(ID.sus==381)
-for(j in ID.sus){ #loop for each susceptible individual
-  probinf <-rbinom(n=1, size =1, prob = 1-exp(-sum(kernelmatrixlong$value[kernelmatrixlong$sus %in% c(ID.sus[140]) & kernelmatrixlong$inf %in% c(ID.inf)])))  # calculate pob of infection for each sus ceptible individual
+
+which(is.sus==381)
+for(j in is.sus){ #loop for each susceptible individual
+  probinf <-rbinom(n=1, size =1, prob = 1-exp(-sum(kernelmatrixlong$value[kernelmatrixlong$sus %in% c(which(is.sus==j)) & kernelmatrixlong$inf %in% c(ID.inf)])))  # calculate pob of infection for each sus ceptible individual
   dat[[j]]$status <-ifelse(probinf ==1, "exposed",dat[[j]]$status)} # if infection from binomial distribution farm change status
 
-1-exp(-sum(kernelmatrixlong$value[which(kernelmatrixlong$sus %in% c(ID.sus[369]) & kernelmatrixlong$inf %in% c(ID.inf))]))
+1-exp(-sum(kernelmatrixlong$value[which(kernelmatrixlong$sus %in% c(ID.sus[359]) & kernelmatrixlong$inf %in% c(ID.inf))]))
+1-exp(-sum(kernelmatrixlong$value[which(kernelmatrixlong$sus %in% c(which(is.sus==369)) & kernelmatrixlong$inf %in% c(ID.inf))]))
+for(j in is.inf){print (j)}
+
+ID.inf <-sapply(dat[c(14)], function(x) x$ID )
+dat[[1]]$ID
