@@ -80,17 +80,21 @@ plot (S ~ time, data = output, type='b', col = 'blue')
 
 ######################################################################
 ######### link model  ################################
-linkmodel<-function (dat){
-  
+result2 <- data.frame(matrix(nrow = t, ncol = 3))
+colnames(result2) <- c("day", "sus", "inf")
+
+
+linkmodel<-function (dat,t){
   for(i in seq(t)){ # loop for each time increment
-    
-    is.inf <- which(sapply(dat, function(x) x$pop_inf) >0) #infection farm 
+    #dat=farm
+    is.inf <- which(sapply(dat, function(x) x$pop_sus < x$pop)) #infection farm 
     ID.inf <-sapply(dat[c(is.inf)], function(x) x$ID ) # infection ID
     is.sus <- which(sapply(dat, function(x) x$pop_sus == x$pop)) #susceptible farm 
     ID.sus <-sapply(dat[c(is.sus)], function(x) x$ID ) # susceptible ID
     
     for(k in is.inf){ #loop for each infection individual
-      N = dat[[k]]$pop
+      dat[[k]]$infduration <-dat[[k]]$infduration+1
+       N = dat[[k]]$pop
       timepoints = seq (0, i, by=1)
       initial_values = c (S = dat[[k]]$pop_sus, E = dat[[k]]$pop_exposed, I = dat[[k]]$pop_inf, R = dat[[k]]$pop_recover)
       within<-data.frame (ode(initial_values, timepoints, seir_model, parameter_list))
@@ -100,15 +104,19 @@ linkmodel<-function (dat){
       dat[[k]]$pop_recover = within [i,5]
       } 
     
-    for(j in ID.sus){ #loop for each susceptible individual
-      kernel<-sum(kernelmatrixlong$value[kernelmatrixlong$sus %in% c(ID.sus[j]) & kernelmatrixlong$inf %in% c(ID.inf) ])
-      probinf <-rbinom(n=1, size =1, prob = 1-exp(-kernel))  # calculate pob of infection for each sus ceptible individual
-      dat[[j]]$pop <-ifelse(probinf ==1, "exposed",dat[[j]]$status)} # if infection from binomial distribution farm change status
-    
-    
-  }
+       for(j in is.sus){ #loop for each susceptible individual
+        probinf <-rbinom(n=1, size =1, prob = 1-exp(-sum(kernelmatrixlong$value[kernelmatrixlong$sus %in% c(dat[[j]]$ID) & kernelmatrixlong$inf %in% c(ID.inf) ])))  # calculate pob of infection for each sus ceptible individual
+        dat[[j]]$pop_exposed <-ifelse(probinf==1, 1 ,0)
+        dat[[j]]$status <-ifelse(probinf ==1, "inf" ,dat[[j]]$status)
+       } 
+    result2$day[i] <- i
+    result2$sus[i] <- length(which(sapply(dat, function(x) x$status) == "sus")) #susceptible farm
+    result2$inf[i]<-length(which(sapply(dat, function(x) x$status) == "inf")) #inf farm
+    }
+      list(dat,result2)
+      }
   
   
-  
-}
+output<-linkmodel(dat=farm,t=10)
+
 

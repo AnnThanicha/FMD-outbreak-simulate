@@ -222,8 +222,8 @@ out = replicate(n = 3, expr = outbreaksim(dat=farm))# replicate MonteCarlo
 bind_rows(out, .id = "column_label")#merge list to one dataframe for plot
 
 
-########################### test ##################################
-t=10
+########################### test used this one ##################################
+t=20
 result <- data.frame(matrix(nrow = t, ncol = 5))
 colnames(result) <- c("day", "sus", "exposed", "inf", "recover")
 IDinfection<-list()
@@ -257,6 +257,9 @@ outbreaksim<-function (dat){
     IDinfection[i]<-list(sapply(dat[which(sapply(dat, function(x) x$status) == "inf")], function(x) x$ID ))
     
   }
+  result$day[i] <- i
+  result$sus[i] <- length(which(sapply(dat, function(x) x$status) == "sus")) #susceptible farm
+  result$exposed[i]<-length(which(sapply(dat, function(x) x$status) == "inf")) # infect farm
   
   list(result,IDinfection) #keep results in list
   
@@ -267,6 +270,7 @@ outbreakresult<-outbreaksim(dat=farm)
 
 out = replicate(n = 3, expr = outbreaksim(dat=farm))# replicate MonteCarlo
 
+#############################################################################
 
 # check sum kernel
 dat=farm
@@ -283,7 +287,7 @@ for(j in is.sus){ #loop for each susceptible individual
 
 1-exp(-sum(kernelmatrixlong$value[which(kernelmatrixlong$sus %in% c(ID.sus[359]) & kernelmatrixlong$inf %in% c(ID.inf))]))
 1-exp(-sum(kernelmatrixlong$value[which(kernelmatrixlong$sus %in% c(which(is.sus==369)) & kernelmatrixlong$inf %in% c(ID.inf))]))
-for(j in is.inf){print (j)}
+
 
 ID.inf <-sapply(dat[c(14)], function(x) x$ID )
 dat[[1]]$ID
